@@ -1,0 +1,167 @@
+<html>
+
+<head>
+    <script>
+        function hitLike(postId, buttonId) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', "/like/" + postId);
+            xhr.responseType = "json";
+            xhr.send();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if(xhr.status==500)
+                {
+                alert(xhr.responseText);
+                }else
+                    if (xhr.status != 200) {
+                        alert(xhr.response.msg);
+                        location.href = xhr.response.path;
+                    } else {
+                        if (document.getElementById(buttonId).value == 'like') {
+                            document.getElementById(buttonId).value = 'unlike';
+                        } else {
+                            document.getElementById(buttonId).value = 'like';
+                        }
+                    }
+                }
+            };
+
+        }
+
+        function commentList(postId) {
+            if(document.getElementById(postId+'commentList').style.display=='none'){
+            document.getElementById(postId+'commentList').style.display='block';
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', "/comment/" + postId);
+            xhr.responseType = "json";
+            xhr.send();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if(xhr.status==500)
+                {
+                alert(xhr.responseText);
+                }
+                else
+                if (xhr.status != 200) {
+                    alert(xhr.response.msg);
+                } 
+                else {
+                    for(let i=0;i<xhr.response.comments.length;i++)
+                    {
+                    var list=document.getElementById(postId+'commentList');
+                    var date=new Date(xhr.response.comments[i].createDate).toLocaleString();
+                    var email=xhr.response.comments[i].user.email;
+                    var comment=xhr.response.comments[i].comment;
+                    var style="box-shadow: 4px 4px 13px black;align-items: center;padding-left: 7px;width: 584px;position: relative;left: -7%;background:rgb(234, 190, 200)";
+                    var li="<div style='"+style+"'> <a href='/"+email+"' style='padding-right: 20px;font-size: smaller;text-decoration: none;'>"+email+"</a> <a href='/' style='font-size: small;color: black;text-decoration: none;'>delete comment</a> <font style='font-size: xx-small;padding-left: 98px;'>"+date+"</font> <br>"+comment+"</div> <br>";
+                    list.insertAdjacentHTML("beforeend", li);
+                    }
+                }
+
+                }
+            };
+        }
+        else
+        {
+            document.getElementById(postId+'commentList').style.display='none';
+            var list = document.getElementById(postId+'commentList');
+            while (list.hasChildNodes()) {   
+              list.removeChild(list.firstChild);
+            } 
+        }
+
+        }
+
+        function postComment(postId) {
+            var xhr = new XMLHttpRequest();
+            var form = document.getElementById(postId+"postComment").elements;
+            var formData = {};
+            for (let i = 0; i < form.length - 1; i++) {
+                formData[form[i].name] = form[i].value;
+            }
+            xhr.open('POST', "/comment/" + postId);
+            xhr.setRequestHeader('Cache-Control', 'no-cache');
+            xhr.setRequestHeader("Content-type", "application/json");
+            xhr.responseType = "json";
+            xhr.send(JSON.stringify(formData));
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    document.getElementById(postId+"postComment").reset();
+                    document.getElementById(postId+"postComment").elements[0].textContent="write a comment..";
+                    if(xhr.status==500)
+                    {
+                      alert(xhr.responseText);
+                    }
+                    else
+                    if (xhr.status == 401) {
+                        alert(xhr.response.msg);
+                        location.href = xhr.response.path;
+                    } else
+                    if (xhr.status != 200) {
+                        alert(xhr.response.msg);
+                    } else {
+                        alert("you commented");
+                        document.getElementById(postId+"commentCount").value=xhr.response.data.length+" comments";
+                        var list=document.getElementById(postId+'commentList');
+                        var date=new Date(xhr.response.comment.createDate).toLocaleString();
+                        var email=xhr.response.comment.user.email;
+                        var comment=xhr.response.comment.comment;
+                        var style="box-shadow: 4px 4px 13px black;align-items: center;padding-left: 7px;width: 584px;position: relative;left: -7%;background:rgb(234, 190, 200)";
+                        var li="<div style='"+style+"'> <a href='/"+email+"' style='padding-right: 20px;font-size: smaller;text-decoration: none;'>"+email+"</a> <a href='/' style='font-size: small;color: black;text-decoration: none;'>delete comment</a> <font style='font-size: xx-small;padding-left: 98px;'>"+date+"</font> <br>"+comment+"</div> <br>";
+                        list.insertAdjacentHTML("beforeend", li);
+                    }
+                }
+            };
+        }
+        </script>
+    <style>
+    </style>
+</head>
+
+<body>
+
+    <a href="/<%=email%>" style="font-size: 50px ;position: fixed;padding: 0px 100px">profile</a>
+    <br>
+    <br>
+    <br>
+    <% for(var i=0;i<images.length;i++) {%>
+    <div style="box-shadow: 4px 4px 13px black;align-items: center;position: relative;padding-left: 40px;width: 634px;position: relative;left: 25%;background:rgb(227, 231, 237)"
+        id="<%=images[i]._id%>">
+        <br>
+        <a href="<%=images[i].user.email%>">
+            <%=images[i].user.email%></a>
+        <font style="padding: 0px 140px;">
+            <%=images[i].createDate.toLocaleString()%>
+        </font>
+        <br>
+        <br>
+        <img src="<%= images[i].path%>" width="600" height="300" align="middle">
+        <br>
+        <br>
+        <%if(images[i].like.find(function(mail) {
+            return mail== email; }))
+          {
+        %>
+        <input type="button" value="unlike" onclick="hitLike('<%=images[i]._id%>',this.id)" id="<%=images[i]._id%>unlike">
+        <%}
+         else {%>
+        <input type="button" value="like" onclick="hitLike('<%=images[i]._id%>',this.id)" id="<%=images[i]._id%>like">
+        <%}%>
+        <form id="<%=images[i]._id%>postComment" style="display: inline;">
+            <input type="text" name="comment" placeholder="write a comment.." size="70">
+            <input type="button" onclick="postComment('<%=images[i]._id%>')" value="Post">
+        </form>
+        <input type="button" id="<%=images[i]._id%>commentCount" onclick="commentList('<%=images[i]._id%>')" value="<%=images[i].comments.length%> comments">
+        <br>
+        <ul id="<%=images[i]._id%>commentList" style="display: none">
+        </ul>
+        <br>
+        <br>
+    </div>
+    <br>
+    <br>
+    <%}%>
+
+</body>
+
+</html>

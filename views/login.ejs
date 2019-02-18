@@ -1,0 +1,52 @@
+<html>
+
+<head>
+    <script>
+        function alertContents(httpRequest) {
+    httpRequest.onreadystatechange = aContents;
+    function aContents() {
+        if (httpRequest.readyState === XMLHttpRequest.DONE) {
+            var response=httpRequest.response;
+            if(httpRequest.status!=200||response.show)
+            {
+             alert(response.msg);
+            }
+            else
+            location.href=response.path;
+        }
+    }
+}
+function submitForm(id,path)
+{
+    var xhr = new XMLHttpRequest();
+    var form=document.getElementById(id).elements;
+    var formData={};
+    for(let i=0;i<form.length-1;i++){
+        formData[form[i].name]=form[i].value;
+    }
+    xhr.open('POST',path);
+    xhr.setRequestHeader('Cache-Control', 'no-cache');
+    xhr.setRequestHeader("Content-type", "application/json");
+    xhr.responseType="json";
+    xhr.send(JSON.stringify(formData));
+    alertContents(xhr);
+    }
+    </script>
+</head>
+
+<body>
+    <form id="login">
+        <input type="email" name="email" placeholder="Email" size="35" required>
+        <input type="password" name="password" placeholder="password" size="35" required>
+        <input type="button" onclick="submitForm('login','http://localhost:3000/user/login')" value="Login">
+    </form>
+    <form id="signUp">
+        password's length should be greater than 5 <br>
+        <input type="email" name="email" placeholder="Email" size="35" required>
+        <input type="password" name="password" placeholder="password" size="35" required>
+        <input type="password" name="confirmPassword" placeholder="Re-Enter-Password" size="35" required>
+        <input type="button" onclick="submitForm('signUp','http://localhost:3000/user/signUp')" value="Signup">
+    </form>
+</body>
+
+</html>

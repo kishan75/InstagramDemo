@@ -1,0 +1,183 @@
+<html>
+
+<head>
+    <script>
+        function newsFeed() {
+            location.href = "/";
+        }
+        function logout() {
+            location.href = "/user/logout";
+        }
+        function hitLike(postId, buttonId) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', "/like/" + postId);
+            xhr.responseType = "json";
+            xhr.send();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if(xhr.status==500)
+                {
+                alert(xhr.responseText);
+                }else
+                    if (xhr.status != 200) {
+                        alert(xhr.response.msg);
+                        location.href = xhr.response.path;
+                    } else {
+                        if (document.getElementById(buttonId).value == 'like') {
+                            document.getElementById(buttonId).value = 'unlike';
+                        } else {
+                            document.getElementById(buttonId).value = 'like';
+                        }
+                    }
+                }
+            };
+
+        }
+
+        function postComment(postId) {
+            var xhr = new XMLHttpRequest();
+            var form = document.getElementById(postId+"postComment").elements;
+            var formData = {};
+            for (let i = 0; i < form.length - 1; i++) {
+                formData[form[i].name] = form[i].value;
+            }
+            xhr.open('POST', "/comment/" + postId);
+            xhr.setRequestHeader('Cache-Control', 'no-cache');
+            xhr.setRequestHeader("Content-type", "application/json");
+            xhr.responseType = "json";
+            xhr.send(JSON.stringify(formData));
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    document.getElementById(postId+"postComment").reset();
+                    document.getElementById(postId+"postComment").elements[0].textContent="write a comment..";
+                    if(xhr.status==500)
+                    {
+                      alert(xhr.responseText);
+                    }
+                    else
+                    if (xhr.status == 401) {
+                        alert(xhr.response.msg);
+                        location.href = xhr.response.path;
+                    } else
+                    if (xhr.status != 200) {
+                        alert(xhr.response.msg);
+                    } else {
+                        alert("you commented");
+                        
+                    }
+                }
+            };
+        }
+
+    function uploadPhoto(id,path){
+    var xhr = new XMLHttpRequest();
+    var form = document.getElementById(id);
+    var formData = new FormData(form);
+    xhr.open("POST",path);
+    xhr.setRequestHeader('Cache-Control', 'no-cache');
+    xhr.responseType="json";
+    xhr.send(formData);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            var response=xhr.response;
+            if(xhr.status==500)
+            {
+                alert(xhr.responseText);
+            }
+            else
+            if(xhr.status!=200)
+            {
+             alert(response.msg);
+            }
+            else
+            location.reload(true);
+        }
+    };
+}
+function deletepost(postId){
+    var xhr = new XMLHttpRequest();
+    xhr.open("DELETE",'/picture/'+id);
+    xhr.setRequestHeader('Cache-Control', 'no-cache');
+    xhr.responseType="json";
+    xhr.send();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            var response=xhr.response;
+            if(xhr.status==200)
+            {
+                document.getElementById(i+"post").style.display = "none";
+            }
+        }
+    };
+}
+function deleteComment(i,pictureId,commentId){
+    var list=i+"commentList";
+    var xhr = new XMLHttpRequest();
+    xhr.open('DELETE',"/comment/"+pictureId+"/"+commentId);
+    xhr.setRequestHeader('Cache-Control', 'no-cache');
+    xhr.setRequestHeader("Content-type", "application/json");
+    xhr.responseType="json";
+    xhr.send();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            if(xhr.status!=200)
+            {
+                alert(xhr.response.msg);
+            }
+            else
+            {
+                var ul=document.getElementById(list);
+                ul.removeChild(document.getElementById(commentId));
+            }
+        }
+    }
+}    </script>
+</head>
+
+<body>
+    <form id="uploadPhoto" style="display: inline;">
+        <input type="file" name="image" required style="padding: 5px 100px" size="30">
+        <input type="button" value="upload" style="padding: 5px 100px " onclick="uploadPhoto('uploadPhoto','/post')">
+    </form>
+    <input type="button" value="newsFeed" onclick="newsFeed()" style="padding: 5px 100px" size="30">
+    <input type="button" value="logout" onclick="logout()" style="padding: 5px 100px" size="30">
+    <br>
+    <br>
+    <br>
+    <% for(var i=0;i<images.length;i++) {%>
+    <div style="box-shadow: 4px 4px 13px black;align-items: center;position: relative;padding-left: 40px;width: 634px;position: relative;left: 25%;background:rgb(227, 231, 237)"
+        id="<%=images[i]._id%>">
+        <br>
+        <a href="" onclick="">
+            delete this post..</a>
+        <font style="padding: 0px 280px;">
+            <%=images[i].createDate.toLocaleString()%>
+        </font>
+        <br>
+        <br>
+        <img src="<%= images[i].path%>" width="600" height="300" align="middle">
+        <br>
+        <br>
+        <%if(images[i].like.find(function(mail) {
+        return mail== email; }))
+      {
+    %>
+        <input type="button" value="unlike" onclick="hitLike('<%=images[i]._id%>',this.id)" id="<%=images[i]._id%>unlike">
+        <%}
+     else {%>
+        <input type="button" value="like" onclick="hitLike('<%=images[i]._id%>',this.id)" id="<%=images[i]._id%>like">
+        <%}%>
+        <form id="<%=images[i]._id%>postComment" style="display: inline;">
+            <input type="text" name="comment" placeholder="write a comment.." size="70">
+            <input type="button" onclick="postComment('<%=images[i]._id%>')" value="Post">
+        </form>
+        <input type="button" id="<%=images[i]._id%>commentCount" onclick="" value="<%=images[i].comments.length%> comments">
+        <br>
+        <br>
+    </div>
+    <br>
+    <br>
+    <%}%>
+</body>
+
+</html>
