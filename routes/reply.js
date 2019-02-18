@@ -18,7 +18,7 @@ router.use(function (req, res, next) {
 });
 
 router.post("/:commentId", function (req, res) {
-  controller.reply.postReply();
+  controller.reply.postReply(req,res);
 });
 
 router.delete("/:commentId/:replyId", function (req, res) {

@@ -28,6 +28,7 @@ collection.getAllRepliesByCommentId = function (req, res) {
 };
 
 collection.postReply = function (req, res) {
+    console.log(req.body);
     if (!req.body.reply) {
         res.status(400).send(JSON.stringify({
             msg: "reply can't be empty"
@@ -55,10 +56,20 @@ collection.postReply = function (req, res) {
                     console.log(err);
                     res.status(500).send("internal server problem");
                 } else {
-                    res.status(200).send(
-                        JSON.stringify({
-                            msg: "you replied",
+                    model.Reply.findOne({
+                        _id: result._id
+                    }).populate('user').exec(function (err, result) {
+                        if (err) {
+                            console.log(err);
+                            res.status(500).send("internal server problem");
+                            return;
+                        }
+                        res.status(200).send(JSON.stringify({
+                            msg: "you commented",
+                            data: response.reply,
+                            comment: result
                         }));
+                    });
                 }
             });
         }

@@ -2,6 +2,39 @@
 
 <head>
     <script>
+        function postReply(commentId)
+        {
+            var xhr = new XMLHttpRequest();
+            var form = document.getElementById(commentId+"postReply").elements;
+            //console.dir(form);
+            var formData = {};
+            formData[form[0].name] = form[0].value;
+            xhr.open('POST', "/reply/" + commentId);
+            xhr.setRequestHeader('Cache-Control', 'no-cache');
+            xhr.setRequestHeader("Content-type", "application/json");
+            xhr.responseType = "json";
+            xhr.send(JSON.stringify(formData));
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    document.getElementById(commentId+"postReply").reset();
+                    document.getElementById(commentId+"postReply").elements[0].textContent="add a reply..";
+                    if(xhr.status==500)
+                    {
+                      alert(xhr.responseText);
+                    }
+                    else
+                    if (xhr.status == 401) {
+                        alert(xhr.response.msg);
+                        location.href = xhr.response.path;
+                    } else
+                    if (xhr.status != 200) {
+                        alert(xhr.response.msg);
+                    } else {
+                         alert(xhr.response.msg);
+                    }
+                }
+            }
+        }
         function hitLike(postId, buttonId) {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', "/like/" + postId);
@@ -52,9 +85,16 @@
                     var date=new Date(xhr.response.comments[i].createDate).toLocaleString();
                     var email=xhr.response.comments[i].user.email;
                     var comment=xhr.response.comments[i].comment;
+                    var id=xhr.response.comments[i]._id;
+                    var replies=xhr.response.comments[i].reply.length;
+                    var postReplies="<form  style='display: inline;'><input type='text' style='position: relative;left: 65px;' name='reply' placeholder='add a reply..' size='60'><input type='button' style='position: relative;left: 83px;' value='Post Reply'></form>";
+                    var replyList="<ul id='"+id+"replyList' style='disply:none'></ul>";
                     var style="box-shadow: 4px 4px 13px black;align-items: center;padding-left: 7px;width: 584px;position: relative;left: -7%;background:rgb(234, 190, 200)";
-                    var li="<div style='"+style+"'> <a href='/"+email+"' style='padding-right: 20px;font-size: smaller;text-decoration: none;'>"+email+"</a> <a href='/' style='font-size: small;color: black;text-decoration: none;'>delete comment</a> <font style='font-size: xx-small;padding-left: 98px;'>"+date+"</font> <br>"+comment+"</div> <br>";
+                    var li="<div style='"+style+"' id='"+id+"'> <a href='/"+email+"' style='padding-right: 20px;font-size: smaller;text-decoration: none;'>"+email+"</a> <a style='font-size: small;color: black;text-decoration: none;cursor: pointer;padding-left: 0px; color:rgb(85, 26, 139);'>delete comment</a> <span style='font-size: small;padding-left: 24px;cursor: pointer;color:rgb(85, 26, 139);'> "+replies+" replied</span> <font style='font-size: xx-small;padding-left: 10px;'>"+date+"</font> <br> <br>"+comment+" <br><br> "+postReplies+"<br><br>"+replyList+" <br></div> <br> <br>";
                     list.insertAdjacentHTML("beforeend", li);
+                    document.getElementById(id+'postReply').elements[1].addEventListener('click', function(){
+                              postReply(id);
+                     });
                     }
                 }
 
@@ -106,9 +146,11 @@
                         var date=new Date(xhr.response.comment.createDate).toLocaleString();
                         var email=xhr.response.comment.user.email;
                         var comment=xhr.response.comment.comment;
+                        var id=xhr.response.comment._id;
+                        var replies=xhr.response.comment.reply.length;
                         var style="box-shadow: 4px 4px 13px black;align-items: center;padding-left: 7px;width: 584px;position: relative;left: -7%;background:rgb(234, 190, 200)";
-                        var li="<div style='"+style+"'> <a href='/"+email+"' style='padding-right: 20px;font-size: smaller;text-decoration: none;'>"+email+"</a> <a href='/' style='font-size: small;color: black;text-decoration: none;'>delete comment</a> <font style='font-size: xx-small;padding-left: 98px;'>"+date+"</font> <br>"+comment+"</div> <br>";
-                        list.insertAdjacentHTML("beforeend", li);
+                    var li="<div style='"+style+"' id='"+id+"'> <a href='/"+email+"' style='padding-right: 20px;font-size: smaller;text-decoration: none;'>"+email+"</a> <a style='font-size: small;color: black;text-decoration: none;cursor: pointer;padding-left: 0px; color:rgb(85, 26, 139);'>delete comment</a> <span style='font-size: small;padding-left: 24px;cursor: pointer;color:rgb(85, 26, 139);'> "+replies+" replied</span> <font style='font-size: xx-small;padding-left: 10px;'>"+date+"</font> <br> <br>"+comment+" <br><br></div> <br> <br>";
+                    list.insertAdjacentHTML("beforeend", li);
                     }
                 }
             };
@@ -153,7 +195,7 @@
         </form>
         <input type="button" id="<%=images[i]._id%>commentCount" onclick="commentList('<%=images[i]._id%>')" value="<%=images[i].comments.length%> comments">
         <br>
-        <ul id="<%=images[i]._id%>commentList" style="display: none">
+        <ul id="<%=images[i]._id%>commentList" style="display: none ;">
         </ul>
         <br>
         <br>
