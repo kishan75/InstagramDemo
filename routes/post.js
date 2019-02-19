@@ -38,7 +38,7 @@ router.post("/", upload.single("image"), function (req, res) {
 });
 
 router.delete("/:id", function (req, res) {
-    controller.picture.remove(req, res);
+    controller.post.remove(req, res);
 });
 
 module.exports = router;

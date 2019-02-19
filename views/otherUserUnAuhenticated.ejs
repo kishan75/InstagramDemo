@@ -2,12 +2,6 @@
 
 <head>
     <script>
-        function newsFeed() {
-            location.href = "/";
-        }
-        function logout() {
-            location.href = "/user/logout";
-        } 
         function postReply(commentId)
         {
             commentId=commentId.substring(0,commentId.length-6);
@@ -268,76 +262,19 @@
                 }
             };
         }
-        function uploadPhoto(id,path){
-    var xhr = new XMLHttpRequest();
-    var form = document.getElementById(id);
-    var formData = new FormData(form);
-    xhr.open("POST",path);
-    xhr.setRequestHeader('Cache-Control', 'no-cache');
-    xhr.responseType="json";
-    xhr.send(formData);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-            var response=xhr.response;
-            if(xhr.status==500)
-            {
-                alert(xhr.responseText);
-            }
-            else
-            if(xhr.status!=200)
-            {
-             alert(response.msg);
-            }
-            else
-            location.reload(true);
-        }
-    };
-    }
-        function deletePost(id){
-       var xhr = new XMLHttpRequest();
-            xhr.open('DELETE', "/post/" + id);
-            xhr.responseType = "json";
-            xhr.send();
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                if(xhr.status==500)
-                    alert(xhr.responseText);
-                else
-                if(xhr.status==401)
-                {
-                    alert(xhr.response.msg);
-                    location.href=xhr.response.path;
-                }
-                else
-                if(xhr.status==200)
-                {
-                  alert(xhr.response.msg);
-                }
-                else
-                alert(xhr.response.msg);
-                document.getElementById(id).style.display='none';
-            };
-        }
-  }
  </script>
 </head>
 
 <body>
-    <form id="uploadPhoto" style="display: inline;">
-        <input type="file" name="image" required style="padding: 5px 100px" size="30">
-        <input type="button" value="upload" style="padding: 5px 100px " onclick="uploadPhoto('uploadPhoto','/post')">
-    </form>
-    <input type="button" value="newsFeed" onclick="newsFeed()" style="padding: 5px 100px" size="30">
-    <input type="button" value="logout" onclick="logout()" style="padding: 5px 100px" size="30">
-    <br>
+    <font style="font-size: large;color: #3F51B5;position: relative;left: 370px;">
+        <%=email%>
+    </font>
     <br>
     <br>
     <% for(var i=0;i<images.length;i++) {%>
     <div style="box-shadow: 4px 4px 13px black;align-items: center;position: relative;padding-left: 40px;width: 634px;position: relative;left: 25%;background:rgb(227, 231, 237)"
         id="<%=images[i]._id%>">
         <br>
-        <span onclick="deletePost('<%=images[i]._id%>')" style="color: #07243e;cursor: pointer">
-            delete this post..</span>
         <font style="padding: 3px 282px;font-size: small;">
             <%=images[i].createDate.toLocaleString()%>
         </font>

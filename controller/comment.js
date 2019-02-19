@@ -10,7 +10,7 @@ collection.getCommentByPostId = function (req, res) {
         populate: {
             path: 'user'
         }
-    }).exec(function (err, result) {
+    }).populate('user').exec(function (err, result) {
         if (err) {
             console.log(err);
             res.status(500).send("internal server problem");
@@ -75,58 +75,75 @@ collection.postComment = function (req, res) {
 };
 
 collection.deleteComment = function (req, res) {
-    model.Post.findById(req.params.id, function (err, getResult) {
+    model.Comments.findOne({
+        _id: req.params.id
+    }).populate('post').populate('user').exec(function (err, result) {
         if (err) {
             console.log(err);
             res.status(500).send("internal server problem");
-        }
-        if (!getResult) {
-            res.status(400).send(JSON.stringify({
-                msg: "invalid params"
-            }));
             return;
         }
-        var commentDocument = {};
-        getResult.comment.forEach(element => {
-            if (element._id == req.params.childId) {
-                commentDocument = element;
-                return;
-            }
-        });
-        if (commentDocument == {}) {
-            res.status(400).send(JSON.stringify({
-                msg: "invalid params"
-            }));
-        } else {
-            if (req.user.email == getResult.email || req.user.email == commentDocument.email) {
-                model.Post.findByIdAndUpdate(req.params.id, {
-                    $pull: {
-                        comment: {
-                            _id: commentDocument._id
+        if (result) {
+            if (result.user.email == req.user.email) {
+                var promise = new Promise(function (resolve, reject) {
+                    model.Reply.deleteMany({
+                        comment: req.params.id
+                    }, function (err, res) {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(result);
                         }
-                    }
-                }, function (err, respon) {
-                    if (err) {
-                        console.log(err);
-                        res.status(500).send("internal server problem");
-                    } else
-                        model.Post.findById(req.params.id, function (err, response) {
-                            if (err) {
-                                console.log(err);
-                                res.status(500).send("internal server problem");
-                            } else
-                                res.status(200).send(JSON.stringify({
-                                    comment: response.comment
-                                }));
+                    });
+                }).then(function (result) {
+                    return new Promise(function (resolve, reject) {
+                        model.Comments.findByIdAndDelete(req.params.id, function (err, res) {
+                            if (err)
+                                reject(err);
+                            else
+                                resolve(result);
                         });
+                    });
+                }, function (err) {
+                    console.log("reject 2");
+                    return Promise.reject(err);
+                }).then(function (result) {
+                    return new Promise(function (resolve, reject) {
+                        console.log(3);
+                        model.Post.findByIdAndUpdate(result.post._id, {
+                            $pull: {
+                                comments: req.params.id
+                            }
+                        }, {
+                            'new': true
+                        }, function (err, response) {
+                            if (err)
+                                reject(err);
+                            else
+                                resolve(response);
+                        });
+                    });
+                }, function (err) {
+                    return Promise.reject(err);
                 });
-
+                promise.then(function (response) {
+                    res.status(200).send(JSON.stringify({
+                        msg: "comment deleted",
+                        data: response
+                    }));
+                }, function (err) {
+                    console.log(err);
+                    res.status(500).send("internal server problem");
+                });
             } else {
-                res.status(400).send(JSON.stringify({
-                    msg: "you can delete only your own document"
+                res.status(404).send(JSON.stringify({
+                    msg: "you can delete only your own replies"
                 }));
             }
-
+        } else {
+            res.status(404).send(JSON.stringify({
+                msg: "reply id is invalid"
+            }));
         }
     });
 };

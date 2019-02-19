@@ -20,7 +20,7 @@ router.post("/:postId", function (req, res) {
     controller.comment.postComment(req, res);
 });
 
-router.delete("/:id/:childId", function (req, res) {
+router.delete("/:id", function (req, res) {
     controller.comment.deleteComment(req, res);
 });
 
