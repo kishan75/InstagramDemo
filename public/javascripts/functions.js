@@ -36,7 +36,7 @@ function postReply(commentId) {
                 list.insertAdjacentHTML("beforeend", li);
             }
         }
-    }
+    };
 }
 
 function hitLike(postId, buttonId) {
@@ -85,8 +85,8 @@ function deleteReply(id) {
                 document.getElementById(xhr.response.data._id + "replyCount").innerHTML = xhr.response.data.reply.length + " replied";
             } else
                 alert(xhr.response.msg);
-        };
-    }
+        }
+    };
 }
 
 function replyList(commentId) {
@@ -117,7 +117,7 @@ function replyList(commentId) {
                     }
                 }
             }
-        }
+        };
     } else {
         document.getElementById(commentId + 'replyList').style.display = 'none';
         var list = document.getElementById(commentId + 'replyList');
@@ -149,8 +149,8 @@ function deleteComment(id) {
                 document.getElementById(xhr.response.data._id + "commentCount").value = xhr.response.data.comments.length + " comments";
             } else
                 alert(xhr.response.msg);
-        };
-    }
+        }
+    };
 }
 
 function commentList(postId) {
